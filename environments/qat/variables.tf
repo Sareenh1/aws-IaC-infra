@@ -9,9 +9,6 @@ variable "node_instance_type"     {}
 variable "eks_desired_size"       { type = number }
 variable "eks_max_size"           { type = number }
 variable "eks_min_size"           { type = number }
-variable "db_password"            { sensitive = true }
-variable "docdb_password"         { sensitive = true }
-variable "mq_password"            { sensitive = true }
 variable "rds_instance_class"     {}
 variable "cache_node_type"        {}
 variable "docdb_instance_class"   {}

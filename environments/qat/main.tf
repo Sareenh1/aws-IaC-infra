@@ -1,3 +1,17 @@
+# ── Read secrets from AWS Secrets Manager ──
+data "aws_secretsmanager_secret_version" "db_password" {
+  secret_id = "${var.environment}/rds/password"
+}
+
+data "aws_secretsmanager_secret_version" "docdb_password" {
+  secret_id = "${var.environment}/docdb/password"
+}
+
+data "aws_secretsmanager_secret_version" "mq_password" {
+  secret_id = "${var.environment}/mq/password"
+}
+
+# ── Modules ──
 module "vpc" {
   source                = "../../terraform/modules/vpc"
   environment           = var.environment
@@ -30,12 +44,12 @@ module "eks" {
 }
 
 module "rds" {
-  source          = "../../terraform/modules/rds"
-  environment     = var.environment
-  subnet_ids      = module.vpc.private_subnet_ids
-  rds_sg_id       = module.security_groups.rds_sg_id
-  db_password     = var.db_password
-  instance_class  = var.rds_instance_class
+  source         = "../../terraform/modules/rds"
+  environment    = var.environment
+  subnet_ids     = module.vpc.private_subnet_ids
+  rds_sg_id      = module.security_groups.rds_sg_id
+  db_password    = data.aws_secretsmanager_secret_version.db_password.secret_string
+  instance_class = var.rds_instance_class
 }
 
 module "redis" {
@@ -51,7 +65,7 @@ module "docdb" {
   environment     = var.environment
   subnet_ids      = module.vpc.private_subnet_ids
   docdb_sg_id     = module.security_groups.docdb_sg_id
-  master_password = var.docdb_password
+  master_password = data.aws_secretsmanager_secret_version.docdb_password.secret_string
   instance_class  = var.docdb_instance_class
 }
 
@@ -60,7 +74,7 @@ module "mq" {
   environment    = var.environment
   subnet_ids     = module.vpc.private_subnet_ids
   rabbitmq_sg_id = module.security_groups.rabbitmq_sg_id
-  mq_password    = var.mq_password
+  mq_password    = data.aws_secretsmanager_secret_version.mq_password.secret_string
   instance_type  = var.mq_instance_type
 }
 
